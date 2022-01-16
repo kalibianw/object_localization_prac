@@ -2,5 +2,8 @@
 .ipynb_checkpoints/
 emojis/
 ingredients/
+ing_test/
 ckpt/
-Untitled.ipynb
+log/
+prac.py
+ingredients.h5
