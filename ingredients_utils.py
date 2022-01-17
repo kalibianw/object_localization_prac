@@ -73,15 +73,13 @@ class IoU(tf.keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         def get_loc(y):
             y = y * 227
-            return y[0], y[1], y[2], y[3]
+            return y[:, 0], y[:, 1], y[:, 2], y[:, 3]
 
         def get_area(x1, y1, x2, y2):
             return tf.math.abs(x2 - x1) * tf.math.abs(y2 - y1)
 
         gt_x1, gt_y1, gt_x2, gt_y2 = get_loc(y_true)
         p_x1, p_y1, p_x2, p_y2 = get_loc(y_pred)
-        print(f"gt_x1: {gt_x1}, gt_y1: {gt_y1}, gt_x2: {gt_x2}, gt_y2: {gt_y2}")
-        print(f"p_x1: {p_x1}, p_y1: {p_y1}, p_x2: {p_x2}, p_y2: {p_y2}")
 
         i_x1 = tf.maximum(gt_x1, p_x1)
         i_y1 = tf.maximum(gt_y1, p_y1)
@@ -93,8 +91,18 @@ class IoU(tf.keras.metrics.Metric):
 
         iou = tf.math.divide(i_area, u_area)
         self.num_ex.assign_add(1)
-        self.total_iou.assign_add(tf.reduce_mean(iou))
+        if tf.reduce_mean(iou).numpy() > 2:
+            self.total_iou.assign_add(tf.constant(1e-9))
+        else:
+            self.total_iou.assign_add(tf.reduce_mean(iou))
         self.iou = tf.math.abs(tf.math.divide(self.total_iou, self.num_ex))
+        # print()
+        # print("i_area: ", i_area)
+        # print("u_area: ", u_area)
+        # print("iou: ", iou)
+        # print("reduce_mean iou: ", tf.reduce_mean(iou).numpy())
+        # print("total_iou: ", self.total_iou.numpy())
+        # print()
 
     def result(self):
         return self.iou
@@ -172,9 +180,10 @@ class TrainModule:
                                             verbose=1,
                                             mode="max",
                                             min_lr=1e-8),
-                callbacks.TensorBoard(log_dir=self.log_dir)
+                callbacks.TensorBoard(log_dir=self.log_dir),
             ],
-            validation_data=({"image": x_valid}, {"class_out": y_label_valid, "box_out": y_loc_valid})
+            validation_data=({"image": x_valid}, {"class_out": y_label_valid, "box_out": y_loc_valid}),
+            steps_per_epoch=300
         )
         model.load_weights(filepath=self.ckpt_path)
         model.save(filepath=self.model_path)

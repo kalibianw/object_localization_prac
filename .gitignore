@@ -6,4 +6,5 @@ ing_test/
 ckpt/
 log/
 prac.py
+test.py
 ingredients.h5
