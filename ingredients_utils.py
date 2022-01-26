@@ -20,7 +20,7 @@ class DataModule:
         if os.path.isdir(self.dir_path) is not True:
             raise NotADirectoryError(f"{dir_path} is not a directory.")
 
-    def get_data(self, valid_size=0.2):
+    def get_data(self, valid_size=None):
         p = re.compile("[.][x][m][l]")
         xml_file_list = list()
         for file_name in os.listdir(f"{self.dir_path}"):
@@ -96,13 +96,6 @@ class IoU(tf.keras.metrics.Metric):
         else:
             self.total_iou.assign_add(tf.reduce_mean(iou))
         self.iou = tf.math.abs(tf.math.divide(self.total_iou, self.num_ex))
-        # print()
-        # print("i_area: ", i_area)
-        # print("u_area: ", u_area)
-        # print("iou: ", iou)
-        # print("reduce_mean iou: ", tf.reduce_mean(iou).numpy())
-        # print("total_iou: ", self.total_iou.numpy())
-        # print()
 
     def result(self):
         return self.iou
