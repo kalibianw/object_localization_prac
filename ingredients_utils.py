@@ -2,7 +2,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical
 from natsort import natsorted
-import xml.etree.ElementTree as elemtree
+import xml.etree.ElementTree as ElemTree
 import numpy as np
 import cv2
 import os
@@ -32,7 +32,7 @@ class DataModule:
         y_loc = list()
         y_label = list()
         for xml_file_name in xml_file_list:
-            tree = elemtree.parse(f"{self.dir_path}{xml_file_name}")
+            tree = ElemTree.parse(f"{self.dir_path}{xml_file_name}")
             root = tree.getroot()
 
             fname = os.path.splitext(xml_file_name)[0]
@@ -46,8 +46,6 @@ class DataModule:
             y_label.append(root[6][0].text)
 
         x_data, y_label, y_loc = np.array(x_data), np.array(y_label), np.array(y_loc)
-        x_data_max, y_loc_max = 255.0, 227.0
-        x_data = x_data / x_data_max
         le = LabelEncoder()
         y_label = to_categorical(le.fit_transform(y_label))
         y_loc = np.asarray(y_loc, dtype=np.float) / y_loc_max
@@ -70,7 +68,7 @@ class IoU(tf.keras.metrics.Metric):
         self.total_iou = self.add_weight(name='total_iou', initializer='zeros')
         self.num_ex = self.add_weight(name='num_ex', initializer='zeros')
 
-    def update_state(self, y_true, y_pred, sample_weight=None):
+    def update_state(self, y_true, y_pred):
         def get_loc(y):
             y = y * 227
             return y[:, 0], y[:, 1], y[:, 2], y[:, 3]
@@ -101,9 +99,9 @@ class IoU(tf.keras.metrics.Metric):
         return self.iou
 
     def reset_state(self):
-        self.iou = self.add_weight(name='iou', initializer='zeros')
-        self.total_iou = self.add_weight(name='total_iou', initializer='zeros')
-        self.num_ex = self.add_weight(name='num_ex', initializer='zeros')
+        self.iou = self.add_weight(name="iou", initializer="zeros")
+        self.total_iou = self.add_weight(name="total_iou", initializer="zeros")
+        self.num_ex = self.add_weight(name="num_ex", initializer="zeros")
 
 
 class TrainModule:
@@ -112,6 +110,8 @@ class TrainModule:
         self.ckpt_path = ckpt_path
         self.model_path = model_path
         self.log_dir = log_dir
+        if os.path.exists(self.log_dir) is False:
+            os.makedirs(self.log_dir)
 
     def build_model(self):
         input_layer = layers.Input(shape=self.input_shape, name="image")
