@@ -68,7 +68,7 @@ class IoU(tf.keras.metrics.Metric):
         self.total_iou = self.add_weight(name="total_iou", initializer="zeros")
         self.num_ex = self.add_weight(name="num_ex", initializer="zeros")
 
-    def update_state(self, y_true, y_pred):
+    def update_state(self, y_true, y_pred, sample_weight=None):
         def get_loc(y):
             y = y * 227
             return y[:, 0], y[:, 1], y[:, 2], y[:, 3]
