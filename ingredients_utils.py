@@ -64,9 +64,9 @@ class IoU(tf.keras.metrics.Metric):
     def __init__(self, **kwargs):
         super(IoU, self).__init__(**kwargs)
 
-        self.iou = self.add_weight(name='iou', initializer='zeros')
-        self.total_iou = self.add_weight(name='total_iou', initializer='zeros')
-        self.num_ex = self.add_weight(name='num_ex', initializer='zeros')
+        self.iou = self.add_weight(name="iou", initializer="zeros")
+        self.total_iou = self.add_weight(name="total_iou", initializer="zeros")
+        self.num_ex = self.add_weight(name="num_ex", initializer="zeros")
 
     def update_state(self, y_true, y_pred):
         def get_loc(y):
@@ -108,8 +108,12 @@ class TrainModule:
     def __init__(self, input_shape, ckpt_path: str, model_path: str, log_dir: str):
         self.input_shape = input_shape
         self.ckpt_path = ckpt_path
+        if os.path.exists(os.path.dirname(self.ckpt_path)) is False:
+            os.makedirs(os.path.dirname(self.ckpt_path))
         self.model_path = model_path
         self.log_dir = log_dir
+        if self.log_dir[-1] != "/":
+            raise Warning("dir_path must end with a /.")
         if os.path.exists(self.log_dir) is False:
             os.makedirs(self.log_dir)
 
