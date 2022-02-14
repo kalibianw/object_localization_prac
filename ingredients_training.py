@@ -9,7 +9,10 @@ dm = ing_utils.DataModule(
 )
 
 x_train, x_valid, y_label_train, y_label_valid, y_loc_train, y_loc_valid, x_data_max, y_loc_max = dm.get_data(
-    valid_size=0.2
+    valid_size=0.2,
+    # is_canny_used=True,
+    # canny_threshold1=192,
+    # canny_threshold2=192
 )
 print(np.shape(x_train), np.shape(y_label_train), np.shape(y_loc_train))
 print(np.shape(x_valid), np.shape(y_label_valid), np.shape(y_loc_valid))

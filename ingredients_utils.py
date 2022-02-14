@@ -16,11 +16,17 @@ class DataModule:
     def __init__(self, dir_path: str):
         self.dir_path = dir_path
         if self.dir_path[-1] != "/":
-            raise Warning("dir_path must end with a /.")
+            raise Warning("dir_path must end with a '/'")
         if os.path.isdir(self.dir_path) is not True:
             raise NotADirectoryError(f"{dir_path} is not a directory.")
 
-    def get_data(self, valid_size=None):
+    def get_data(self, valid_size=None, norm=True, is_canny_used=False, canny_threshold1=127, canny_threshold2=127):
+        x_data_max, y_loc_max = 255.0, 227.0
+
+        def canny_edge(raw_img, threshold1: int, threshold2: int):
+            canny_output = cv2.Canny(raw_img, threshold1, threshold2)
+            return canny_output
+
         p = re.compile("[.][x][m][l]")
         xml_file_list = list()
         for file_name in os.listdir(f"{self.dir_path}"):
@@ -35,8 +41,12 @@ class DataModule:
             tree = ElemTree.parse(f"{self.dir_path}{xml_file_name}")
             root = tree.getroot()
 
-            fname = os.path.splitext(xml_file_name)[0]
-            img = cv2.imread(f"{self.dir_path}{fname}.jpg")
+            file_name = os.path.splitext(xml_file_name)[0]
+            img = cv2.imread(f"{self.dir_path}{file_name}.jpg")
+            if is_canny_used:
+                img = canny_edge(img, threshold1=canny_threshold1, threshold2=canny_threshold2)
+            if norm:
+                img = img / x_data_max
             x_data.append(img)
 
             loc = list()
@@ -46,6 +56,8 @@ class DataModule:
             y_label.append(root[6][0].text)
 
         x_data, y_label, y_loc = np.array(x_data), np.array(y_label), np.array(y_loc)
+        if is_canny_used:
+            x_data = np.expand_dims(x_data, axis=-1)
         le = LabelEncoder()
         y_label = to_categorical(le.fit_transform(y_label))
         y_loc = np.asarray(y_loc, dtype=np.float) / y_loc_max
@@ -113,7 +125,7 @@ class TrainModule:
         self.model_path = model_path
         self.log_dir = log_dir
         if self.log_dir[-1] != "/":
-            raise Warning("dir_path must end with a /.")
+            raise Warning("dir_path must end with a '/'")
         if os.path.exists(self.log_dir) is False:
             os.makedirs(self.log_dir)
 
