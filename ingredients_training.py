@@ -20,7 +20,7 @@ print(np.shape(x_valid), np.shape(y_label_valid), np.shape(y_loc_valid))
 tm = ing_utils.TrainModule(
     input_shape=np.shape(x_train[0, :, :, :]),
     ckpt_path=f"ckpt/{MODEL_NAME}/{MODEL_NAME}.ckpt",
-    model_path=f"{MODEL_NAME}.h5",
+    model_path=f"model/{MODEL_NAME}.h5",
     log_dir=f"log/{MODEL_NAME}/"
 )
 
